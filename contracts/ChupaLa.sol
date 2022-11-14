@@ -3,43 +3,36 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "hardhat/console.sol";
 
 /// @custom:security-contact info@chupa.la
-contract ChupaLa is Initializable, ERC20Upgradeable, PausableUpgradeable, AccessControlUpgradeable, UUPSUpgradeable {
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-
+contract ChupaLa is Initializable, ERC20Upgradeable, PausableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
     function initialize() initializer public {
-        __ERC20_init("chupa.la", "CHUPA");
+        __ERC20_init("ChupaLa", "CHUPA");
         __Pausable_init();
-        __AccessControl_init();
+        __Ownable_init();
         __UUPSUpgradeable_init();
 
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(PAUSER_ROLE, msg.sender);
-        _mint(msg.sender, 1000000000 * 10 ** decimals());
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(UPGRADER_ROLE, msg.sender);
+        _mint(msg.sender, 1000000 * 10 ** decimals());
     }
 
-    function pause() public onlyRole(PAUSER_ROLE) {
+    function pause() public onlyOwner {
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() public onlyOwner {
         _unpause();
     }
 
-    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }
 
@@ -53,7 +46,7 @@ contract ChupaLa is Initializable, ERC20Upgradeable, PausableUpgradeable, Access
 
     function _authorizeUpgrade(address newImplementation)
         internal
-        onlyRole(UPGRADER_ROLE)
+        onlyOwner
         override
     {}
 }
